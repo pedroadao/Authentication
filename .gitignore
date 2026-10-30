@@ -1,0 +1,17 @@
+## .NET
+bin/
+obj/
+*.user
+
+## Segredos e certificados locais - nunca versionar
+.env
+certs/
+*.pfx
+*.pem
+*.key
+
+## IDE / SO
+.vs/
+.vscode/
+.idea/
+.DS_Store

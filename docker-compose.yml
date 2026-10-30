@@ -1,0 +1,52 @@
+# Para uso local/estudo. Nenhum segredo real deve ser commitado:
+# crie um arquivo ".env" (git-ignorado) com as variáveis abaixo antes de subir os containers.
+#
+#   POSTGRES_PASSWORD=<senha-forte-apenas-local>
+#   OPENIDDICT_SIGNING_CERT_PASSWORD=<senha-do-certificado>
+#   OPENIDDICT_ENCRYPTION_CERT_PASSWORD=<senha-do-certificado>
+#   ASPNETCORE_Kestrel__Certificates__Default__Password=<senha-do-certificado-https-dev>
+#
+# Os certificados referenciados (signing.pfx, encryption.pfx, https-dev.pfx) devem
+# ser gerados localmente (ex.: dotnet dev-certs / openssl) e nunca versionados.
+
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: authentication
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: AuthenticationDb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U authentication -d AuthenticationDb"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ConnectionStrings__AppDb: "Host=postgres;Port=5432;Database=AuthenticationDb;Username=authentication;Password=${POSTGRES_PASSWORD}"
+      OpenIddict__SigningCertificatePath: "/run/secrets/certs/signing.pfx"
+      OpenIddict__SigningCertificatePassword: ${OPENIDDICT_SIGNING_CERT_PASSWORD}
+      OpenIddict__EncryptionCertificatePath: "/run/secrets/certs/encryption.pfx"
+      OpenIddict__EncryptionCertificatePassword: ${OPENIDDICT_ENCRYPTION_CERT_PASSWORD}
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/run/secrets/certs/https-dev.pfx"
+      ASPNETCORE_Kestrel__Certificates__Default__Password: ${ASPNETCORE_Kestrel__Certificates__Default__Password}
+    volumes:
+      - ./certs:/run/secrets/certs:ro
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+
+volumes:
+  postgres-data:
