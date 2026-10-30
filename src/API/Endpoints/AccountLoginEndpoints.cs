@@ -1,6 +1,8 @@
 using System.Net;
 using Authentication.Domain.Users;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Primitives;
 
 namespace Authentication.API.Endpoints;
 
@@ -50,10 +52,10 @@ public static class AccountLoginEndpoints
         HttpRequest request,
         SignInManager<ApplicationUser> signInManager)
     {
-        var form = await request.ReadFormAsync();
-        var email = form["email"].ToString();
-        var password = form["password"].ToString();
-        var returnUrl = form["returnUrl"].ToString();
+        var fields = await ReadFieldsAsync(request);
+        var email = fields.GetValueOrDefault("email", StringValues.Empty).ToString();
+        var password = fields.GetValueOrDefault("password", StringValues.Empty).ToString();
+        var returnUrl = fields.GetValueOrDefault("returnUrl", StringValues.Empty).ToString();
 
         if (string.IsNullOrEmpty(returnUrl))
             returnUrl = "/";
@@ -70,5 +72,28 @@ public static class AccountLoginEndpoints
         }
 
         return Results.Redirect(returnUrl);
+    }
+
+    /// <summary>
+    /// Lê os campos do formulário de login. Alguns navegadores/extensões (ex.: autofill
+    /// de senha) reenviam o submit via fetch/XHR sem o header Content-Type correto;
+    /// nesses casos, interpretamos o corpo bruto como application/x-www-form-urlencoded
+    /// em vez de falhar com "Incorrect Content-Type".
+    /// </summary>
+    private static async Task<Dictionary<string, StringValues>> ReadFieldsAsync(HttpRequest request)
+    {
+        if (request.HasFormContentType)
+        {
+            var form = await request.ReadFormAsync();
+            return form.ToDictionary(pair => pair.Key, pair => pair.Value);
+        }
+
+        using var reader = new StreamReader(request.Body);
+        var body = await reader.ReadToEndAsync();
+
+        if (string.IsNullOrWhiteSpace(body))
+            return [];
+
+        return QueryHelpers.ParseQuery(body).ToDictionary(pair => pair.Key, pair => pair.Value);
     }
 }
