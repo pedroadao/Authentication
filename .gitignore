@@ -15,3 +15,6 @@ certs/
 .vscode/
 .idea/
 .DS_Store
+postman/Authentication.postman_collection.json
+CLAUDE.md
+postman/Authentication.postman_environment.json

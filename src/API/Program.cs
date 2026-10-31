@@ -2,7 +2,7 @@ using Authentication.API.Endpoints;
 using Authentication.API.Startup;
 using Authentication.Application;
 using Authentication.Infrastructure;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using OpenIddict.Validation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,10 +13,10 @@ builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
 builder.Services
     .AddAuthentication(options =>
     {
-        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultScheme = IdentityConstants.ApplicationScheme;
         options.DefaultChallengeScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
     })
-    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+    .AddCookie(IdentityConstants.ApplicationScheme, options =>
     {
         options.LoginPath = "/account/login";
         options.Cookie.HttpOnly = true;

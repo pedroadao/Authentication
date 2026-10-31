@@ -3,7 +3,6 @@ using System.Security.Claims;
 using Authentication.Domain.Users;
 using Microsoft.AspNetCore; // GetOpenIddictServerRequest() (OpenIddictServerAspNetCoreHelpers)
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
@@ -35,12 +34,12 @@ public static class AuthorizationEndpoints
         var request = httpContext.GetOpenIddictServerRequest()
             ?? throw new InvalidOperationException("Requisição OpenID Connect inválida.");
 
-        var authenticateResult = await httpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        var authenticateResult = await httpContext.AuthenticateAsync(IdentityConstants.ApplicationScheme);
 
         if (!authenticateResult.Succeeded)
         {
             return Results.Challenge(
-                authenticationSchemes: [CookieAuthenticationDefaults.AuthenticationScheme],
+                authenticationSchemes: [IdentityConstants.ApplicationScheme],
                 properties: new AuthenticationProperties
                 {
                     RedirectUri = httpContext.Request.PathBase + httpContext.Request.Path + httpContext.Request.QueryString,
@@ -143,7 +142,7 @@ public static class AuthorizationEndpoints
 
     private static async Task<IResult> LogoutAsync(HttpContext httpContext)
     {
-        await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        await httpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
 
         return Results.SignOut(
             authenticationSchemes: [OpenIddictServerAspNetCoreDefaults.AuthenticationScheme],
