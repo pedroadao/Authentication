@@ -19,7 +19,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
 RUN groupadd --system --gid 1500 appgroup \
-    && useradd --system --uid 1500 --gid appgroup appuser
+    && useradd --system --uid 1500 --gid appgroup --create-home --home-dir /home/appuser appuser
 
 COPY --from=build /app/publish .
 

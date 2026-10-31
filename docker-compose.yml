@@ -34,12 +34,12 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      ASPNETCORE_ENVIRONMENT: "Production"
+      # Development (em vez de Production) para que o DevelopmentSeed cadastre
+      # automaticamente o client OAuth "spa-client" usado pelo AuthenticationReact,
+      # e para que os certificados de signing/encryption do OpenIddict sejam
+      # efêmeros (gerados em memória) em vez de exigir signing.pfx/encryption.pfx.
+      ASPNETCORE_ENVIRONMENT: "Development"
       ConnectionStrings__AppDb: "Host=postgres;Port=5432;Database=AuthenticationDb;Username=authentication;Password=${POSTGRES_PASSWORD}"
-      OpenIddict__SigningCertificatePath: "/run/secrets/certs/signing.pfx"
-      OpenIddict__SigningCertificatePassword: ${OPENIDDICT_SIGNING_CERT_PASSWORD}
-      OpenIddict__EncryptionCertificatePath: "/run/secrets/certs/encryption.pfx"
-      OpenIddict__EncryptionCertificatePassword: ${OPENIDDICT_ENCRYPTION_CERT_PASSWORD}
       ASPNETCORE_Kestrel__Certificates__Default__Path: "/run/secrets/certs/https-dev.pfx"
       ASPNETCORE_Kestrel__Certificates__Default__Password: ${ASPNETCORE_Kestrel__Certificates__Default__Password}
     volumes:
@@ -47,6 +47,30 @@ services:
     ports:
       - "8080:8080"
       - "8443:8443"
+
+  web:
+    build:
+      context: ../AuthenticationReact
+      dockerfile: Dockerfile.dev
+    depends_on:
+      - api
+    environment:
+      # O navegador acessa esses endpoints via localhost (portas publicadas),
+      # não pelo nome do serviço Docker — o fluxo OAuth é feito de navegação
+      # completa do browser do host, não de container para container.
+      VITE_API_BASE_URL: "https://localhost:8443"
+      VITE_OIDC_CLIENT_ID: "spa-client"
+      VITE_OIDC_REDIRECT_URI: "https://localhost:5173/callback"
+      VITE_OIDC_SCOPE: "openid email profile offline_access"
+      # Dentro do container não há Keychain do host para confiar na CA do mkcert;
+      # reaproveitamos os certificados já gerados/confiados no host (ver README).
+      SKIP_MKCERT: "1"
+    volumes:
+      - ../AuthenticationReact:/app
+      - /app/node_modules
+      - ../AuthenticationReact/.certs:/app/.certs:ro
+    ports:
+      - "5173:5173"
 
 volumes:
   postgres-data:

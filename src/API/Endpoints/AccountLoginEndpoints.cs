@@ -61,6 +61,7 @@ public static class AccountLoginEndpoints
             returnUrl = "/";
 
         var result = await signInManager.PasswordSignInAsync(email, password, isPersistent: false, lockoutOnFailure: true);
+        var wantsJson = AcceptsJson(request);
 
         if (!result.Succeeded)
         {
@@ -68,10 +69,29 @@ public static class AccountLoginEndpoints
                 ? "Conta temporariamente bloqueada devido a múltiplas tentativas inválidas."
                 : "E-mail ou senha inválidos.";
 
+            if (wantsJson)
+                return Results.Json(new { error }, statusCode: StatusCodes.Status401Unauthorized);
+
             return Results.Redirect($"/account/login?returnUrl={WebUtility.UrlEncode(returnUrl)}&error={WebUtility.UrlEncode(error)}");
         }
 
+        if (wantsJson)
+            return Results.Json(new { succeeded = true });
+
         return Results.Redirect(returnUrl);
+    }
+
+    /// <summary>
+    /// Indica se a chamada veio de um cliente JS (SPA) que espera uma resposta JSON
+    /// em vez do redirect HTML padrão do formulário de login.
+    /// </summary>
+    private static bool AcceptsJson(HttpRequest request)
+    {
+        if (request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            return true;
+
+        return request.Headers.Accept.Any(value =>
+            value is not null && value.Contains("application/json", StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>

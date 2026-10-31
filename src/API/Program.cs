@@ -32,6 +32,17 @@ builder.Services.AddAuthorization(options =>
         .Build();
 });
 
+const string SpaCorsPolicy = "SpaCorsPolicy";
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(SpaCorsPolicy, policy => policy
+        .WithOrigins("https://localhost:5173")
+        .AllowAnyMethod()
+        .WithHeaders("Content-Type", "Accept", "Authorization", "X-Requested-With")
+        .AllowCredentials());
+});
+
 builder.Services.AddHttpsRedirection(options =>
 {
     options.HttpsPort = 443;
@@ -46,6 +57,8 @@ app.UseExceptionHandler("/error");
 app.Map("/error", () => Results.Problem(statusCode: StatusCodes.Status500InternalServerError));
 
 app.UseHttpsRedirection();
+
+app.UseCors(SpaCorsPolicy);
 
 if (app.Environment.IsDevelopment())
     app.UseSwaggerDocumentation();
