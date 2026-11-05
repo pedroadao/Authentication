@@ -16,4 +16,14 @@ public interface IUserService
         string displayName,
         string password,
         CancellationToken cancellationToken);
+
+    Task<ApplicationUser?> FindByEmailAsync(string email, CancellationToken cancellationToken);
+
+    Task<string> GeneratePasswordResetTokenAsync(ApplicationUser user, CancellationToken cancellationToken);
+
+    Task<Result> ResetPasswordAsync(
+        ApplicationUser user,
+        string token,
+        string newPassword,
+        CancellationToken cancellationToken);
 }

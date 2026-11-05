@@ -23,4 +23,12 @@ public static class UserErrors
     public static readonly Error NotFound = new(
         "User.NotFound",
         "Usuário não encontrado.");
+
+    public static readonly Error InvalidOrExpiredResetToken = new(
+        "User.InvalidOrExpiredResetToken",
+        "Token de redefinição de senha inválido ou expirado.");
+
+    public static Error PasswordResetFailed(string details) => new(
+        "User.PasswordResetFailed",
+        details);
 }
