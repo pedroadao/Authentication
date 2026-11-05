@@ -59,9 +59,16 @@ public static class DevelopmentSeed
                 DisplayName = "Cliente de desenvolvimento (BarbeariaReact)",
                 RedirectUris =
                 {
+                    // vite dev (npm run dev).
                     new Uri("http://localhost:5174/callback"),
+                    // nginx via docker-compose da Barbearia (porta WEB_PORT).
+                    new Uri("http://localhost:8082/callback"),
                 },
-                PostLogoutRedirectUris = { new Uri("http://localhost:5174/") },
+                PostLogoutRedirectUris =
+                {
+                    new Uri("http://localhost:5174/"),
+                    new Uri("http://localhost:8082/"),
+                },
                 Permissions =
                 {
                     Permissions.Endpoints.Authorization,
