@@ -48,5 +48,33 @@ public static class DevelopmentSeed
                 Requirements = { Requirements.Features.ProofKeyForCodeExchange },
             });
         }
+
+        if (await applicationManager.FindByClientIdAsync("barbearia-spa-client") is null)
+        {
+            await applicationManager.CreateAsync(new OpenIddictApplicationDescriptor
+            {
+                ClientId = "barbearia-spa-client",
+                ClientType = ClientTypes.Public,
+                ConsentType = ConsentTypes.Implicit,
+                DisplayName = "Cliente de desenvolvimento (BarbeariaReact)",
+                RedirectUris =
+                {
+                    new Uri("http://localhost:5174/callback"),
+                },
+                PostLogoutRedirectUris = { new Uri("http://localhost:5174/") },
+                Permissions =
+                {
+                    Permissions.Endpoints.Authorization,
+                    Permissions.Endpoints.Token,
+                    Permissions.GrantTypes.AuthorizationCode,
+                    Permissions.GrantTypes.RefreshToken,
+                    Permissions.ResponseTypes.Code,
+                    Permissions.Scopes.Email,
+                    Permissions.Scopes.Profile,
+                    Permissions.Prefixes.Scope + "offline_access",
+                },
+                Requirements = { Requirements.Features.ProofKeyForCodeExchange },
+            });
+        }
     }
 }

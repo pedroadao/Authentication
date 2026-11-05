@@ -37,7 +37,9 @@ const string SpaCorsPolicy = "SpaCorsPolicy";
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(SpaCorsPolicy, policy => policy
-        .WithOrigins("https://localhost:5173")
+        // https://localhost:5173: AuthenticationReact. http://localhost:5174: BarbeariaReact,
+        // que também autentica diretamente contra este provedor (Authorization Code + PKCE).
+        .WithOrigins("https://localhost:5173", "http://localhost:5174")
         .AllowAnyMethod()
         .WithHeaders("Content-Type", "Accept", "Authorization", "X-Requested-With")
         .AllowCredentials());
