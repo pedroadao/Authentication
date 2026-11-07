@@ -20,7 +20,12 @@ builder.Services
     {
         options.LoginPath = "/account/login";
         options.Cookie.HttpOnly = true;
-        options.Cookie.SameSite = SameSiteMode.Lax;
+        // O SPA (ex.: http://localhost:8082) chama /account/login via fetch cross-origin
+        // (porta diferente deste serviço) e depois navega para /connect/authorize. Um
+        // cookie SameSite=Lax setado por uma resposta de fetch cross-site é descartado
+        // pelo navegador, então a navegação seguinte nunca vê sessão autenticada e cai de
+        // volta na tela de login. SameSite=None exige Secure, que já está configurado.
+        options.Cookie.SameSite = SameSiteMode.None;
         options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     });
 

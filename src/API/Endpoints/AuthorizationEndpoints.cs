@@ -38,6 +38,18 @@ public static class AuthorizationEndpoints
 
         if (!authenticateResult.Succeeded)
         {
+            if (request.HasPromptValue(PromptValues.None))
+            {
+                return Results.Forbid(
+                    authenticationSchemes: [OpenIddictServerAspNetCoreDefaults.AuthenticationScheme],
+                    properties: new AuthenticationProperties(new Dictionary<string, string?>
+                    {
+                        [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.LoginRequired,
+                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
+                            "Não há sessão ativa para autenticação silenciosa.",
+                    }));
+            }
+
             return Results.Challenge(
                 authenticationSchemes: [IdentityConstants.ApplicationScheme],
                 properties: new AuthenticationProperties

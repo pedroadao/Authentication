@@ -64,6 +64,12 @@ public static class DependencyInjection
                     .RequireProofKeyForCodeExchange()
                     .AllowRefreshTokenFlow();
 
+                // Sem isso, o access_token é um JWE (criptografado) que só este processo
+                // consegue abrir, então um resource server externo (ex.: Barbearia, que usa
+                // JwtBearer genérico, não OpenIddict.Validation) nunca valida o token. O
+                // token continua assinado (não falsificável) e só interno a este servidor.
+                options.DisableAccessTokenEncryption();
+
                 options.RegisterScopes(
                     OpenIddictConstants.Scopes.OpenId,
                     OpenIddictConstants.Scopes.Email,
