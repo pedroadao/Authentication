@@ -10,6 +10,9 @@ certs/
 *.pem
 *.key
 
+## Ferramentas de análise
+.sonarqube/
+
 ## IDE / SO
 .vs/
 .vscode/

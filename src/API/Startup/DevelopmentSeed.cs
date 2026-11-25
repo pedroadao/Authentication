@@ -85,11 +85,52 @@ public static class DevelopmentSeed
             Requirements = { Requirements.Features.ProofKeyForCodeExchange },
         });
 
+        await EnsureApplicationAsync(applicationManager, new OpenIddictApplicationDescriptor
+        {
+            ClientId = "quadranet-spa-client",
+            ClientType = ClientTypes.Public,
+            ConsentType = ConsentTypes.Implicit,
+            DisplayName = "Cliente de desenvolvimento (QuadraNetReact)",
+            RedirectUris =
+            {
+                // vite dev (npm run dev).
+                new Uri("http://localhost:5175/callback"),
+                new Uri("http://localhost:5175/silent-callback"),
+                // nginx via docker-compose do QuadraNet (porta WEB_PORT).
+                new Uri("http://localhost:8092/callback"),
+                new Uri("http://localhost:8092/silent-callback"),
+            },
+            PostLogoutRedirectUris =
+            {
+                new Uri("http://localhost:5175/"),
+                new Uri("http://localhost:8092/"),
+            },
+            Permissions =
+            {
+                Permissions.Endpoints.Authorization,
+                Permissions.Endpoints.Token,
+                Permissions.GrantTypes.AuthorizationCode,
+                Permissions.GrantTypes.RefreshToken,
+                Permissions.ResponseTypes.Code,
+                Permissions.Scopes.Email,
+                Permissions.Scopes.Profile,
+                Permissions.Prefixes.Scope + "offline_access",
+            },
+            Requirements = { Requirements.Features.ProofKeyForCodeExchange },
+        });
+
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
         const string adminRole = "Administrador";
 
         if (await roleManager.FindByNameAsync(adminRole) is null)
             await roleManager.CreateAsync(new IdentityRole<Guid>(adminRole));
+        string[] quadraNetRoles = ["AdmSistema", "AdmGrupo", "Usuario"];
+
+        foreach (var roleName in quadraNetRoles)
+        {
+            if (await roleManager.FindByNameAsync(roleName) is null)
+                await roleManager.CreateAsync(new IdentityRole<Guid>(roleName));
+        }
 
         // Login fixo de administração para desenvolvimento local, enquanto o 2FA
         // (planejado para mais adiante) ainda não existe. A role "Administrador"

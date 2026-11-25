@@ -44,9 +44,13 @@ builder.Services.AddCors(options =>
     options.AddPolicy(SpaCorsPolicy, policy => policy
         // https://localhost:5173: AuthenticationReact (vite dev). http://localhost:5174:
         // BarbeariaReact (vite dev). http://localhost:8082: BarbeariaReact via
-        // docker-compose (nginx, porta WEB_PORT). Todos autenticam diretamente
-        // contra este provedor (Authorization Code + PKCE).
-        .WithOrigins("https://localhost:5173", "http://localhost:5174", "http://localhost:8082")
+        // docker-compose (nginx, porta WEB_PORT). http://localhost:5175: QuadraNetReact
+        // (vite dev). http://localhost:8092: QuadraNetReact via docker-compose (nginx,
+        // porta WEB_PORT). Todos autenticam diretamente contra este provedor
+        // (Authorization Code + PKCE).
+        .WithOrigins(
+            "https://localhost:5173", "http://localhost:5174", "http://localhost:8082",
+            "http://localhost:5175", "http://localhost:8092")
         .AllowAnyMethod()
         .WithHeaders("Content-Type", "Accept", "Authorization", "X-Requested-With")
         .AllowCredentials());
